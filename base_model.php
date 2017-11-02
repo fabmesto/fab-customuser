@@ -32,9 +32,9 @@ abstract class Base_Model
     if($this->initSql){
       global $wpdb;
       global $fab_customuser_db_version;
-      $charset_collate = $wpdb->get_charset_collate();
       /*
-  		$this->initSql = "CREATE TABLE ".$this->tableName." (
+      $charset_collate = $wpdb->get_charset_collate();
+      $this->initSql = "CREATE TABLE ".$this->tableName." (
   			id int(11) NOT NULL AUTO_INCREMENT,
   			created datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
   			name tinytext NOT NULL,

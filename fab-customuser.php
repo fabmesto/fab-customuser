@@ -25,7 +25,7 @@ class Fab_Custom_User {
 		// menu
 		add_action( 'admin_menu', array( &$this, 'setupAdminMenus' ) );
 
-
+		// show adsense in content
 		add_filter( 'the_content', array( &$this, 'show_ads_in_content') );
 	}
 

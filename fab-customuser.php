@@ -63,10 +63,9 @@ class Fab_Custom_User {
 
 	public function show_ads_in_content($content) {
 		$adsense = get_the_author_meta( 'adsense' );
-		if($adsense!=''){
+		$code = '<!-- NO ADSENSE AUTORE -->';
+		if(is_singular( 'post' ) && $adsense!=''){
 			$code = '<div class="adsense-user text-center">'.$adsense.'</div>';
-		}else{
-			$code = '<!-- NO ADSENSE AUTORE -->';
 		}
 		return $code.$content.$code;
 	}

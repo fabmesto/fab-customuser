@@ -1,71 +1,71 @@
 <?php
-add_action( 'admin_menu', 'fab_add_admin_menu' );
-add_action( 'admin_init', 'fab_settings_init' );
+/*
+Plugin Name: Fab Custom User
+Plugin URI: https://www.netedit.it/
+Description: Aggiunge il campo ADSENSE ad ogni utente
+Author: Fabrizio MESTO
+Version: 0.0.1
+Author URI: https://www.netedit.it/
+Text Domain: fabcustomuser
+Domain Path: lang
+*/
+$fab_customuser_db_version = '1.0';
+
+class Fab_Custom_User {
+	public $allowed_roles = array('editor', 'administrator', 'author', 'contributor');
+
+	public function __construct() {
+		// mostra
+		add_action( 'show_user_profile', array( &$this, 'show_extra_profile_fields' ) );
+		add_action( 'edit_user_profile', array( &$this, 'show_extra_profile_fields' ) );
+		// salva
+		add_action( 'personal_options_update', array( &$this, 'save_extra_profile_fields') );
+		add_action( 'edit_user_profile_update', array( &$this, 'save_extra_profile_fields') );
+
+		// menu
+		add_action( 'admin_menu', array( &$this, 'setupAdminMenus' ) );
 
 
-function fab_add_admin_menu(  ) {
+		add_filter( 'the_content', array( &$this, 'show_ads_in_content') );
+	}
 
-	add_options_page( 'fab-customuser', 'fab-customuser', 'manage_options', 'fab-customuser', 'fab_options_page' );
+		/* MOSTRA ADSENSE */
+		public function show_extra_profile_fields( $user ) {
+			if( array_intersect($this->allowed_roles, $user->roles ) ) {
+				?>
 
-}
+				<h3>Informazioni riservate agli autori </h3>
+				<table class="form-table">
+					<tr>
+						<th><label for="adsense">ADSENSE Code</label></th>
+						<td>
+							<textarea name="adsense" id="adsense" class="regular-text" rows="5" cols="30"><?php echo esc_attr( get_the_author_meta( 'adsense', $user->ID ) ); ?></textarea><br />
+							<span class="description">Codice ADSENSE che apparirà in ogni articolo dell'autore</span>
+						</td>
+					</tr>
+				</table>
+			<?php }
+		}
 
+		/* SALVA ADSENSE */
+		public function save_extra_profile_fields( $user_id ) {
 
-function fab_settings_init(  ) {
+			if ( !current_user_can( 'edit_user', $user_id ) )
+			return false;
 
-	register_setting( 'pluginPage', 'fab_settings' );
+			update_usermeta( $user_id, 'adsense', $_POST['adsense'] );
+		}
 
-	add_settings_section(
-		'fab_pluginPage_section',
-		__( 'Your section description', 'wordpress' ),
-		'fab_settings_section_callback',
-		'pluginPage'
-	);
+		public function setupAdminMenus() {
+			//add_menu_page( 'FAB Settings', 'FAB plugin', 'manage_options', 'fab_settings', array( &$this, 'settingsPage' ) );
+			//add_menu_page( 'FAB Test SB', 'FAB test DB', 'manage_options', 'fab_test_db', array( &$this, 'testDB' ) );
+		}
 
-	add_settings_field(
-		'fab_text_field_0',
-		__( 'Settings field description', 'wordpress' ),
-		'fab_text_field_0_render',
-		'pluginPage',
-		'fab_pluginPage_section'
-	);
+		public function show_ads_in_content($content) {
+			$adsense = '<div class="adsense-user text-center">'.get_the_author_meta( 'adsense' ).'</div>';
+			return $adsense.$content.$adsense;
+		}
 
+	}
 
-}
-
-
-function fab_text_field_0_render(  ) {
-
-	$options = get_option( 'fab_settings' );
-	?>
-	<input type='text' name='fab_settings[fab_text_field_0]' value='<?php echo $options['fab_text_field_0']; ?>'>
-	<?php
-
-}
-
-
-function fab_settings_section_callback(  ) {
-
-	echo __( 'This section description', 'wordpress' );
-
-}
-
-
-function fab_options_page(  ) {
-
-	?>
-	<form action='options.php' method='post'>
-
-		<h2>fab-customuser</h2>
-
-		<?php
-		settings_fields( 'pluginPage' );
-		do_settings_sections( 'pluginPage' );
-		submit_button();
-		?>
-
-	</form>
-	<?php
-
-}
-
-?>
+	$fab_custom_user = new Fab_Custom_User();

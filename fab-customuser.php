@@ -27,6 +27,7 @@ class Fab_Custom_User {
 
 		// show adsense in content
 		add_filter( 'the_content', array( &$this, 'show_ads_in_content') );
+		add_filter( 'the_title',  array( &$this, 'show_ads_in_title') );
 	}
 
 	/* MOSTRA ADSENSE */
@@ -61,6 +62,17 @@ class Fab_Custom_User {
 		//add_menu_page( 'FAB Test SB', 'FAB test DB', 'manage_options', 'fab_test_db', array( &$this, 'testDB' ) );
 	}
 
+	public function show_ads_in_title($content){
+		$adsense = get_the_author_meta( 'adsense' );
+		if($adsense=='') $adsense = get_the_author_meta( 'adsense', 1 );
+
+		$code = '<!-- NO ADSENSE AUTORE -->';
+		if( is_singular( 'post' ) ){
+			$code = '<div class="adsense-user text-center">'.$adsense.'</div>';
+		}
+		return $code.$content;
+	}
+
 	public function show_ads_in_content($content) {
 		$adsense = get_the_author_meta( 'adsense' );
 		if($adsense=='') $adsense = get_the_author_meta( 'adsense', 1 );
@@ -69,7 +81,7 @@ class Fab_Custom_User {
 		if( is_singular( 'post' ) ){
 			$code = '<div class="adsense-user text-center">'.$adsense.'</div>';
 		}
-		return $code.$content.$code;
+		return $content.$code;
 	}
 
 }

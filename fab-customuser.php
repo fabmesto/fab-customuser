@@ -13,6 +13,10 @@ $fab_customuser_db_version = '1.0';
 
 class Fab_Custom_User {
 	public $allowed_roles = array('editor', 'administrator', 'author', 'contributor');
+	public $before_content = true;
+	public $after_content = true;
+	public $before_title = false;
+	public $after_title = false;
 
 	public function __construct() {
 		// mostra
@@ -70,7 +74,9 @@ class Fab_Custom_User {
 		if( is_singular( 'post' ) ){
 			$code = '<div class="adsense-user text-center">'.$adsense.'</div>';
 		}
-		return $code.$content;
+		if($this->before_title) $content = $code.$content;
+		if($this->after_title) $content = $content.$code;
+		return $content;
 	}
 
 	public function show_ads_in_content($content) {
@@ -81,7 +87,9 @@ class Fab_Custom_User {
 		if( is_singular( 'post' ) ){
 			$code = '<div class="adsense-user text-center">'.$adsense.'</div>';
 		}
-		return $content.$code;
+		if($this->before_content) $content = $code.$content;
+		if($this->after_content) $content = $content.$code;
+		return $content;
 	}
 
 }

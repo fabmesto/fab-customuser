@@ -9,6 +9,9 @@ Author URI: https://www.netedit.it/
 Text Domain: fabcustomuser
 Domain Path: lang
 */
+define('FAB_PLUGIN_DIR_PATH', plugin_dir_path( __FILE__ ));
+define('FAB_PLUGIN_DIR_URL', plugin_dir_url( __FILE__ ));
+
 class Fab_Custom_User {
 	public $allowed_roles = array('editor', 'administrator', 'author', 'contributor');
 	public $before_content = true;
@@ -25,13 +28,44 @@ class Fab_Custom_User {
 		add_action( 'personal_options_update', array( &$this, 'save_extra_profile_fields') );
 		add_action( 'edit_user_profile_update', array( &$this, 'save_extra_profile_fields') );
 
-		// menu
-		add_action( 'admin_menu', array( &$this, 'setupAdminMenus' ) );
-
 		// show adsense in content
 		add_filter( 'the_content', array( &$this, 'show_ads_in_content') );
 		add_filter( 'the_title',  array( &$this, 'show_ads_in_title') );
+
+		if ( is_admin() ){ // admin actions
+      add_action( 'admin_menu', array( &$this, 'add_admin_menu' ) );
+      add_action( 'admin_init', array( &$this, 'register_settings' ) );
+    }
 	}
+
+	public function add_admin_menu() {
+    // add_management_page -> Strumenti
+    // add_options_page -> Impostazioni
+    // add_menu_page -> in ROOT
+    add_menu_page(
+      'Fab Custom User',
+      'Fab Custom User',
+      'manage_options',
+      'fabcustomuser_settings',
+      array( &$this, 'settings' )
+      //plugins_url( 'fab-prazimark/images/icon.png' )
+    );
+  }
+
+  public function settings(){
+    ob_start();
+    $action_file = FAB_PLUGIN_DIR_PATH.'settings.php';
+    if(file_exists ( $action_file )){
+      require_once( $action_file );
+    }else{
+      echo "Nessuna azione trovata: ".$action;
+    }
+    echo ob_get_clean();
+  }
+
+  public function register_settings() { // whitelist options
+    register_setting( 'fabcustomuser-options', 'every_n_p' );
+  }
 
 	/* MOSTRA ADSENSE */
 	public function show_extra_profile_fields( $user ) {
@@ -68,11 +102,6 @@ class Fab_Custom_User {
 		update_usermeta( $user_id, 'adsense_bottom', $_POST['adsense_bottom'] );
 	}
 
-	public function setupAdminMenus() {
-		//add_menu_page( 'FAB Settings', 'FAB plugin', 'manage_options', 'fab_settings', array( &$this, 'settingsPage' ) );
-		//add_menu_page( 'FAB Test SB', 'FAB test DB', 'manage_options', 'fab_test_db', array( &$this, 'testDB' ) );
-	}
-
 	public function show_ads_in_title($content){
 		$adsense = get_the_author_meta( 'adsense' );
 		if($adsense=='') $adsense = get_the_author_meta( 'adsense', 1 );
@@ -102,6 +131,8 @@ class Fab_Custom_User {
 		if( is_singular( 'post' ) ){
 			$code_bottom = '<div class="adsense-user adsense-user-bottom text-center">'.$adsense_bottom.'</div>';
 		}
+
+		$this->every_n_p = get_option('every_n_p');
 
 		$content_p = explode("</p>", $content);
 		$new_content = "";

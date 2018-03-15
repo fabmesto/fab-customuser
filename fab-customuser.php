@@ -9,14 +9,13 @@ Author URI: https://www.netedit.it/
 Text Domain: fabcustomuser
 Domain Path: lang
 */
-$fab_customuser_db_version = '1.0';
-
 class Fab_Custom_User {
 	public $allowed_roles = array('editor', 'administrator', 'author', 'contributor');
 	public $before_content = true;
 	public $after_content = true;
 	public $before_title = false;
 	public $after_title = false;
+	public $every_n_p = 3;
 
 	public function __construct() {
 		// mostra
@@ -42,10 +41,17 @@ class Fab_Custom_User {
 			<h3>Informazioni riservate agli autori </h3>
 			<table class="form-table">
 				<tr>
-					<th><label for="adsense">ADSENSE Code</label></th>
+					<th><label for="adsense">ADSENSE (in alto)</label></th>
 					<td>
 						<textarea name="adsense" id="adsense" class="regular-text" rows="5" cols="30"><?php echo esc_attr( get_the_author_meta( 'adsense', $user->ID ) ); ?></textarea><br />
-						<span class="description">Codice ADSENSE che apparirà in ogni articolo dell'autore (TOP and BOTTOM)</span>
+						<span class="description">Codice ADSENSE che apparirà in alto ad ogni articolo dell'autore (TOP)</span>
+					</td>
+				</tr>
+				<tr>
+					<th><label for="adsense_bottom">ADSENSE (in basso)</label></th>
+					<td>
+						<textarea name="adsense_bottom" id="adsense_bottom" class="regular-text" rows="5" cols="30"><?php echo esc_attr( get_the_author_meta( 'adsense_bottom', $user->ID ) ); ?></textarea><br />
+						<span class="description">Codice ADSENSE che apparirà in basso ad ogni articolo dell'autore (BOTTOM)</span>
 					</td>
 				</tr>
 			</table>
@@ -59,6 +65,7 @@ class Fab_Custom_User {
 		return false;
 
 		update_usermeta( $user_id, 'adsense', $_POST['adsense'] );
+		update_usermeta( $user_id, 'adsense_bottom', $_POST['adsense_bottom'] );
 	}
 
 	public function setupAdminMenus() {
@@ -83,15 +90,39 @@ class Fab_Custom_User {
 		$adsense = get_the_author_meta( 'adsense' );
 		if($adsense=='') $adsense = get_the_author_meta( 'adsense', 1 );
 
-		$code = '<!-- NO ADSENSE AUTORE -->';
+		$code = '<!-- NO ADSENSE TOP AUTORE -->';
 		if( is_singular( 'post' ) ){
-			$code = '<div class="adsense-user text-center">'.$adsense.'</div>';
+			$code = '<div class="adsense-user adsense-user-top text-center">'.$adsense.'</div>';
 		}
-		if($this->before_content) $content = $code.$content;
-		if($this->after_content) $content = $content.$code;
-		return $content;
-	}
 
+		$adsense_bottom = get_the_author_meta( 'adsense_bottom' );
+		if($adsense_bottom=='') $adsense_bottom = get_the_author_meta( 'adsense_bottom', 1 );
+
+		$code_bottom = '<!-- NO ADSENSE BOTTOM AUTORE -->';
+		if( is_singular( 'post' ) ){
+			$code_bottom = '<div class="adsense-user adsense-user-bottom text-center">'.$adsense_bottom.'</div>';
+		}
+
+		$content_p = explode("</p>", $content);
+		$new_content = "";
+		for ($i = 0; $i <count($content_p); $i++) {
+			if($i!=0 && $i!=(count($content_p)-1) && ($i % $this->every_n_p)==0) {
+				$new_content .= $content_p[$i]."</p>".$code;
+			}	else{
+				$new_content .= $content_p[$i]."</p>";
+			}
+		}
+
+		if($this->before_content) $new_content = $code.$new_content;
+		if($this->after_content) $new_content = $new_content.$code_bottom;
+
+		return $new_content;
+		/*
+		if($this->before_content) $content = $code.$content;
+		if($this->after_content) $content = $content.$code_bottom;
+		return $content;
+		*/
+	}
 }
 
 $fab_custom_user = new Fab_Custom_User();

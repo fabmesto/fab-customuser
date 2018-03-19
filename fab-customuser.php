@@ -14,10 +14,10 @@ define('FAB_PLUGIN_DIR_URL', plugin_dir_url( __FILE__ ));
 
 class Fab_Custom_User {
 	public $allowed_roles = array('editor', 'administrator', 'author', 'contributor');
-	public $before_content = true;
-	public $after_content = true;
-	public $before_title = false;
-	public $after_title = false;
+	public $before_content = 1;
+	public $after_content = 1;
+	public $before_title = 0;
+	public $after_title = 0;
 	public $every_n_p = 3;
 
 	public function __construct() {
@@ -65,6 +65,10 @@ class Fab_Custom_User {
 
   public function register_settings() { // whitelist options
     register_setting( 'fabcustomuser-options', 'every_n_p' );
+		register_setting( 'fabcustomuser-options', 'before_title' );
+		register_setting( 'fabcustomuser-options', 'after_title' );
+		register_setting( 'fabcustomuser-options', 'before_content' );
+		register_setting( 'fabcustomuser-options', 'after_content' );
   }
 
 	/* MOSTRA ADSENSE */
@@ -110,8 +114,12 @@ class Fab_Custom_User {
 		if( is_singular( 'post' ) ){
 			$code = '<div class="adsense-user text-center">'.$adsense.'</div>';
 		}
-		if($this->before_title) $content = $code.$content;
-		if($this->after_title) $content = $content.$code;
+
+		$this->before_title = get_option('before_title');
+		$this->after_title = get_option('after_title');
+
+		if($this->before_title==1) $content = $code.$content;
+		if($this->after_title==1) $content = $content.$code;
 		return $content;
 	}
 
@@ -133,6 +141,8 @@ class Fab_Custom_User {
 		}
 
 		$this->every_n_p = get_option('every_n_p');
+		$this->before_content = get_option('before_content');
+		$this->after_content = get_option('after_content');
 
 		$content_p = explode("</p>", $content);
 		$new_content = "";
@@ -144,8 +154,8 @@ class Fab_Custom_User {
 			}
 		}
 
-		if($this->before_content) $new_content = $code.$new_content;
-		if($this->after_content) $new_content = $new_content.$code_bottom;
+		if($this->before_content==1) $new_content = $code.$new_content;
+		if($this->after_content==1) $new_content = $new_content.$code_bottom;
 
 		return $new_content;
 		/*
